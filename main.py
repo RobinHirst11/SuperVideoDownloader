@@ -3,6 +3,7 @@ import os
 import shutil
 from pytube import YouTube, Playlist
 from threading import Thread
+from tqdm import tqdm
 
 MAX_THREADS = 4
 
@@ -10,7 +11,8 @@ def download_video(video_url, download_folder):
     try:
         yt = YouTube(video_url)
         print(f"Downloading: {yt.title}")
-        yt.streams.first().download(download_folder)
+        with tqdm(total=int(yt.streams.first().filesize), unit='B', unit_scale=True, desc=yt.title) as pbar:
+            yt.streams.first().download(download_folder, on_progress=lambda stream, chunk, bytes_remaining: pbar.update(chunk))
         print("Download complete!")
     except Exception as e:
         print(f"Error downloading {video_url}: {e}")
@@ -39,7 +41,7 @@ def download_playlist(playlist_url, playlist_title):
 
     print(f"All videos from '{playlist_title}' downloaded to '{download_folder}'")
 
-if __name__name__ == "__main__":
+if __name__ == "__main__":
     playlist_url = input("Enter playlist URL: ")
     playlist_title = input("Enter playlist title: ")
     download_playlist(playlist_url, playlist_title)
